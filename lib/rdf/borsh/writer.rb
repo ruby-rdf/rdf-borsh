@@ -24,6 +24,7 @@ module RDF::Borsh
             when 0 then self.instance_eval(&block)
             else block.call(self)
           end
+          self.finish
         end
       end
     end
