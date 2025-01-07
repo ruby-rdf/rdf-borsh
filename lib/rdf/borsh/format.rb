@@ -4,7 +4,7 @@ require 'rdf/format'
 
 module RDF::Borsh
   class Format < RDF::Format
-    content_type 'application/x-rdf+borsh', extension: :borsh
+    content_type 'application/x-rdf+borsh', extension: :rdfb
     reader { RDF::Borsh::Reader }
     writer { RDF::Borsh::Writer }
 
