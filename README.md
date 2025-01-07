@@ -27,6 +27,29 @@ gem install rdf-borsh
 
 ```ruby
 require 'rdf/borsh'
+
+include RDF
+```
+
+### Serializing an RDF graph into an RDF/Borsh file
+
+```ruby
+RDF::Borsh::Writer.open("mygraph.rdfb") do |writer|
+  writer << [RDF::URI("https://rubygems.org/gems/rdf-borsh"), RDFS.label, "RDF/Borsh for Ruby"]
+end
+```
+
+### Parsing an RDF graph from an RDF/Borsh file
+
+```ruby
+graph = RDF::Graph.load("mygraph.rdfb")
+graph.to_a
+```
+
+### Parsing an RDF/Borsh dataset from standard input
+
+```ruby
+RDF::Borsh::Reader.new($stdin).to_a
 ```
 
 ## 👨‍💻 Development
