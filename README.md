@@ -4,10 +4,12 @@
 [![Compatibility](https://img.shields.io/badge/ruby-3.0%2B-blue)](https://rubygems.org/gems/rdf-borsh)
 [![Package](https://img.shields.io/gem/v/rdf-borsh)](https://rubygems.org/gems/rdf-borsh)
 
-A Ruby library for encoding and decoding RDF data using the [Borsh]
-binary serialization format.
+An [RDF.rb] extension for encoding and decoding [RDF] knowledge graphs in
+the [Borsh] binary serialization format.
 
 [Borsh]: https://borsh.io
+[RDF]: https://www.w3.org/TR/rdf12-concepts/
+[RDF.rb]: https://github.com/ruby-rdf/rdf
 
 ## 🛠️ Prerequisites
 

@@ -6,7 +6,7 @@ Gem::Specification.new do |gem|
   gem.homepage           = "https://github.com/ruby-rdf/rdf-borsh"
   gem.license            = "Unlicense"
   gem.summary            = "RDF/Borsh for Ruby"
-  gem.description        = "A Ruby library for encoding and decoding RDF data using the Borsh binary serialization format."
+  gem.description        = "An RDF.rb extension for encoding and decoding RDF knowledge graphs in the Borsh binary serialization format."
   gem.metadata           = {
     'bug_tracker_uri'   => "https://github.com/ruby-rdf/rdf-borsh/issues",
     'changelog_uri'     => "https://github.com/ruby-rdf/rdf-borsh/blob/master/CHANGES.md",
