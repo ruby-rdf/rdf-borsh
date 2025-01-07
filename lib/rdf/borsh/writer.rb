@@ -53,6 +53,7 @@ module RDF::Borsh
 
     # Writes the uncompressed header.
     def write_header
+      @output.binmode
       @output.write([MAGIC, VERSION, FLAGS].pack('a4CC'))
       @output.write([@quads_set.size].pack('V'))
     end
