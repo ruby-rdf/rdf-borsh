@@ -1,5 +1,6 @@
 # This is free and unencumbered software released into the public domain.
 
+require 'borsh'
 require 'extlz4'
 require 'rdf'
 require 'stringio'
@@ -15,15 +16,17 @@ module RDF::Borsh
     def initialize(input = $stdin, **options, &block)
       super(input, **options) do
         input = @input
+
+        @input.extend(Borsh::Readable)
         @version, @flags, @quad_count = self.read_header
 
-        input_size = input.read(4).unpack('V').first
-        @input = StringIO.new(self.decompress(input.read(input_size)), 'rb')
+        input_size = input.read_u32
+        @input = Borsh::Buffer.new(self.decompress(input.read(input_size)))
         @terms = [nil] + self.read_terms
 
-        input_size = input.read(4).unpack('V').first
-        @input = StringIO.new(self.decompress(input.read(input_size)), 'rb')
-        _ = @input.read(4).unpack('V').first
+        input_size = input.read_u32
+        @input = Borsh::Buffer.new(self.decompress(input.read(input_size)))
+        _ = @input.read_u32
 
         if block_given?
           case block.arity
@@ -46,9 +49,9 @@ module RDF::Borsh
     ##
     # Reads the compressed terms dictionary.
     def read_terms
-      term_count = @input.read(4).unpack('V').first
+      term_count = @input.read_u32
       term_count.times.map do
-        term_kind, term_string_size = @input.read(5).unpack('CV')
+        term_kind, term_string_size = @input.read_u8, @input.read_u32
         term_string = @input.read(term_string_size)
 
         case term_kind
@@ -56,10 +59,10 @@ module RDF::Borsh
           when 2 then RDF::Node(term_string)
           when 3 then RDF::Literal(term_string)
           when 4
-            term_datatype_size = @input.read(4).unpack('V')
+            term_datatype_size = @input.read_u32
             RDF::Literal(term_string, datatype: @input.read(term_datatype_size))
           when 5
-            term_language_size = @input.read(4).unpack('V')
+            term_language_size = @input.read_u32
             RDF::Literal(term_string, language: @input.read(term_language_size))
           else
             raise RDF::ReaderError, "unknown RDF/Borsh term type: #{term_kind}"
@@ -73,13 +76,13 @@ module RDF::Borsh
       magic = @input.read(4).unpack('a4').first
       raise RDF::ReaderError, "invalid RDF/Borsh header: #{magic.inspect}" if magic != MAGIC
 
-      version = @input.read(1).unpack('C').first
+      version = @input.read_u8
       raise RDF::ReaderError, "invalid RDF/Borsh version: #{version}" if version != VERSION
 
-      flags = @input.read(1).unpack('C').first
+      flags = @input.read_u8
       raise RDF::ReaderError, "invalid RDF/Borsh flags: #{flags}" if flags != FLAGS
 
-      quad_count = @input.read(4).unpack('V').first
+      quad_count = @input.read_u32
       [version, flags, quad_count]
     end
 

@@ -10,7 +10,7 @@ Gem::Specification.new do |gem|
   gem.metadata           = {
     'bug_tracker_uri'   => "https://github.com/ruby-rdf/rdf-borsh/issues",
     'changelog_uri'     => "https://github.com/ruby-rdf/rdf-borsh/blob/master/CHANGES.md",
-    'documentation_uri' => "https://github.com/ruby-rdf/rdf-borsh/blob/master/README.md",
+    'documentation_uri' => "https://rubydoc.info/gems/rdf-borsh",
     'homepage_uri'      => gem.homepage,
     'source_code_uri'   => "https://github.com/ruby-rdf/rdf-borsh",
   }
@@ -24,7 +24,7 @@ Gem::Specification.new do |gem|
   gem.executables        = %w()
 
   gem.required_ruby_version = '>= 3.0' # RDF.rb 3.3
-  gem.add_runtime_dependency     'borsh',      '~> 0.0'
+  gem.add_runtime_dependency     'borsh',      '~> 0.1'
   gem.add_runtime_dependency     'extlz4',     '~> 0.3'
   gem.add_runtime_dependency     'rdf',        '~> 3.3'
   gem.add_runtime_dependency     'sorted_set', '~> 1.0'

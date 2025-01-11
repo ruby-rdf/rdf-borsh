@@ -1,8 +1,10 @@
 # This is free and unencumbered software released into the public domain.
 
+require 'rdf'
+
 module RDF
   ##
-  # RDF/Borsh.
+  # RDF/Borsh extension for RDF.rb.
   module Borsh
     autoload :Format, 'rdf/borsh/format'
     autoload :Reader, 'rdf/borsh/reader'
@@ -10,4 +12,4 @@ module RDF
   end
 end
 
-require 'rdf/borsh/version'
+require_relative 'borsh/version'
