@@ -24,6 +24,7 @@ Gem::Specification.new do |gem|
   gem.executables        = %w()
 
   gem.required_ruby_version = '>= 3.0' # RDF.rb 3.3
+  gem.add_runtime_dependency     'borsh',      '~> 0.0'
   gem.add_runtime_dependency     'extlz4',     '~> 0.3'
   gem.add_runtime_dependency     'rdf',        '~> 3.3'
   gem.add_runtime_dependency     'sorted_set', '~> 1.0'

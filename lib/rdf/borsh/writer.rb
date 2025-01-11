@@ -1,9 +1,9 @@
 # This is free and unencumbered software released into the public domain.
 
+require 'borsh'
 require 'extlz4'
 require 'rdf'
 require 'sorted_set'
-require 'stringio'
 
 module RDF::Borsh
   class Writer < RDF::Writer
@@ -14,7 +14,19 @@ module RDF::Borsh
     FLAGS = RDF::Borsh::Format::FLAGS
     LZ4HC_CLEVEL_MAX = 12
 
+    ##
+    # Initializes the RDF/Borsh writer.
+    #
+    # @param  [IO, StringIO] output
+    # @param  [Hash{Symbol => Object}] options
+    # @yield  [writer]
+    # @yieldparam  [RDF::Borsh::Writer] writer
+    # @yieldreturn [void]
+    # @return [void]
     def initialize(output = $stdout, **options, &block)
+      output.extend(Borsh::Writable)
+      output.binmode if output.respond_to?(:binmode)
+
       @terms_dict, @terms_map = [], {}
       @quads_set = SortedSet.new
 
@@ -29,10 +41,25 @@ module RDF::Borsh
       end
     end
 
+    ##
+    # Writes an RDF triple.
+    #
+    # @param  [RDF::Resource] subject
+    # @param  [RDF::URI] predicate
+    # @param  [RDF::Term] object
+    # @return [void]
     def write_triple(subject, predicate, object)
       self.write_quad(subject, predicate, object, nil)
     end
 
+    ##
+    # Writes an RDF quad.
+    #
+    # @param  [RDF::Resource] subject
+    # @param  [RDF::URI] predicate
+    # @param  [RDF::Term] object
+    # @param  [RDF::Resource] context
+    # @return [void]
     def write_quad(subject, predicate, object, context)
       s = self.intern_term(subject)
       p = self.intern_term(predicate)
@@ -41,29 +68,42 @@ module RDF::Borsh
       @quads_set << [g, s, p, o]
     end
 
+    ##
+    # Flushes the output.
+    #
+    # @return [void]
     def flush
       self.finish
       super
     end
 
+    ##
+    # Finishes writing the output.
+    #
+    # @return [void]
     def finish
       self.write_header
       self.write_terms
       self.write_quads
     end
 
+    ##
     # Writes the uncompressed header.
+    #
+    # @return [void]
     def write_header
       @output.binmode
       @output.write([MAGIC, VERSION, FLAGS].pack('a4CC'))
-      @output.write([@quads_set.size].pack('V'))
+      @output.write_u32(@quads_set.size)
     end
 
+    ##
     # Writes the compressed terms dictionary.
+    #
+    # @return [void]
     def write_terms
-      buffer = StringIO.open do |output|
-        output.binmode
-        output.write([@terms_dict.size].pack('V'))
+      buffer = self.compress do |output|
+        output.write_u32(@terms_dict.size)
         @terms_dict.each do |term|
           output.write(case
             when term.iri?
@@ -87,25 +127,30 @@ module RDF::Borsh
               raise RDF::WriterError, "unsupported RDF/Borsh term type: #{term.inspect}"
           end)
         end
-        self.compress(output.string)
       end
-      @output.write([buffer.size].pack('V'))
+      @output.write_u32(buffer.size)
       @output.write(buffer)
     end
 
+    ##
+    # Writes the compressed quads set.
+    #
+    # @return [void]
     def write_quads
-      buffer = StringIO.open do |output|
-        output.binmode
-        output.write([@quads_set.size].pack('V'))
+      buffer = self.compress do |output|
+        output.write_u32(@quads_set.size)
         @quads_set.each do |quad|
-          output.write(quad.pack('v4'))
+          quad.each { |tid| output.write_u16(tid) }
         end
-        self.compress(output.string)
       end
-      @output.write([buffer.size].pack('V'))
+      @output.write_u32(buffer.size)
       @output.write(buffer)
     end
 
+    ##
+    # Interns the given RDF term.
+    #
+    # @param  [RDF::Term] term
     # @return [Integer]
     def intern_term(term)
       return 0 if term.nil? # for the default graph
@@ -118,8 +163,12 @@ module RDF::Borsh
       term_id
     end
 
-    def compress(data)
-      LZ4::BlockEncoder.new(LZ4HC_CLEVEL_MAX).encode(data)
+    ##
+    # @yield [Borsh::Buffer]
+    # @return [String]
+    def compress(&block)
+      uncompressed = Borsh::Buffer.open(&block)
+      LZ4::BlockEncoder.new(LZ4HC_CLEVEL_MAX).encode(uncompressed)
     end
   end # Writer
 end # RDF::Borsh
