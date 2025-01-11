@@ -7,11 +7,15 @@
 
 **RDF/Borsh** is a [Ruby] library and [RDF.rb] extension for encoding
 and decoding [RDF] knowledge graphs in the [Borsh] binary serialization
-format.
+format. (See the [specification].)
 
 ## ✨ Features
 
-- 100% pure Ruby with minimal dependencies and no bloat.
+- Serializes RDF datasets into compact and efficient binary files.
+- Implements the `application/x-rdf+borsh` MIME type with a `.rdfb` extension.
+- Employes LZ4 compression for both the term dictionary and quad data.
+- Designed for blockchain and distributed ledger applications.
+- Supports reading from and writing to files or I/O streams.
 - Plays nice with others: entirely contained in the `RDF::Borsh` module.
 - 100% free and unencumbered public domain software.
 
@@ -79,3 +83,4 @@ git clone https://github.com/ruby-rdf/rdf-borsh.git
 [RDF]: https://www.w3.org/TR/rdf12-concepts/
 [RDF.rb]: https://github.com/ruby-rdf/rdf
 [Ruby]: https://ruby-lang.org
+[specification]: https://github.com/ruby-rdf/rdf-borsh/blob/master/doc/spec.md
