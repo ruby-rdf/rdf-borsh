@@ -12,23 +12,27 @@ module RDF::Borsh
     MAGIC = RDF::Borsh::Format::MAGIC
     VERSION = RDF::Borsh::Format::VERSION
     FLAGS = RDF::Borsh::Format::FLAGS
+    LZ4HC_CLEVEL_MIN = 2
+    LZ4HC_CLEVEL_DEFAULT = 9
     LZ4HC_CLEVEL_MAX = 12
 
     ##
     # Initializes the RDF/Borsh writer.
     #
     # @param  [IO, StringIO] output
+    # @param  [Integer, #to_i] compression
     # @param  [Hash{Symbol => Object}] options
     # @yield  [writer]
     # @yieldparam  [RDF::Borsh::Writer] writer
     # @yieldreturn [void]
     # @return [void]
-    def initialize(output = $stdout, **options, &block)
+    def initialize(output = $stdout, compression: LZ4HC_CLEVEL_MAX, **options, &block)
       output.extend(Borsh::Writable)
       output.binmode if output.respond_to?(:binmode)
 
       @terms_dict, @terms_map = [], {}
       @quads_set = SortedSet.new
+      @compression = (compression || LZ4HC_CLEVEL_MAX).to_i
 
       super(output, **options) do
         if block_given?
@@ -87,12 +91,14 @@ module RDF::Borsh
       self.write_quads
     end
 
+    protected
+
     ##
     # Writes the uncompressed header.
     #
     # @return [void]
     def write_header
-      @output.binmode
+      @output.binmode if @output.respond_to?(:binmode)
       @output.write([MAGIC, VERSION, FLAGS].pack('a4CC'))
       @output.write_u32(@quads_set.size)
     end
@@ -168,7 +174,7 @@ module RDF::Borsh
     # @return [String]
     def compress(&block)
       uncompressed = Borsh::Buffer.open(&block)
-      LZ4::BlockEncoder.new(LZ4HC_CLEVEL_MAX).encode(uncompressed)
+      LZ4::BlockEncoder.new(@compression).encode(uncompressed)
     end
   end # Writer
 end # RDF::Borsh
